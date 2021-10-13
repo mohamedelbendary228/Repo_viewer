@@ -32,17 +32,21 @@ packages:
   auto_route:
     dependency: "direct main"
     description:
-      name: auto_route
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.4.2"
+      path: "auto_route/"
+      ref: "hotfix/flutter_2.2.3"
+      resolved-ref: "09728a32a987506c1d660b6dda1a55da418d475c"
+      url: "https://github.com/madtocc/auto_route_library.git"
+    source: git
+    version: "2.3.2"
   auto_route_generator:
     dependency: "direct dev"
     description:
-      name: auto_route_generator
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.0"
+      path: "auto_route_generator/"
+      ref: "hotfix/flutter_2.2.3"
+      resolved-ref: "09728a32a987506c1d660b6dda1a55da418d475c"
+      url: "https://github.com/madtocc/auto_route_library.git"
+    source: git
+    version: "2.3.2"
   boolean_selector:
     dependency: transitive
     description:
@@ -354,6 +358,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.10"
+  material_design_icons_flutter:
+    dependency: "direct main"
+    description:
+      name: material_design_icons_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.6295"
   meta:
     dependency: transitive
     description:
