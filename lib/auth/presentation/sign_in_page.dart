@@ -1,11 +1,8 @@
 import 'dart:async';
-
-import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:reop_viewer/auth/application/auth_notifier.dart';
 import 'package:reop_viewer/auth/shared/providers.dart';
 import 'package:reop_viewer/core/presentation/routes/app_router.gr.dart';
 
@@ -30,7 +27,7 @@ class SignInPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Welcom to\nRepo Viewer',
+                    'Welcome to\nRepo Viewer',
                     style: Theme.of(context).textTheme.headline3,
                     textAlign: TextAlign.center,
                   ),
@@ -47,7 +44,6 @@ class SignInPage extends ConsumerWidget {
 
   ElevatedButton signInButton(ScopedReader watch, BuildContext context) {
     final authNotifier = watch(authNotifierProvider.notifier);
-
     return ElevatedButton(
       onPressed: () {
         authNotifier.signIn(
