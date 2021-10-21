@@ -26,6 +26,10 @@ dependencies:
       path: auto_route/
   dio: ^4.0.0
   material_design_icons_flutter: ^5.0.6295
+  json_annotation: ^4.0.1
+  sembast: ^3.0.2
+  path_provider: ^2.0.1
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +41,7 @@ dev_dependencies:
       path: auto_route_generator/
   build_runner: ^2.0.1
   freezed: ^0.14.2
+  json_serializable: ^4.1.1
   lint: ^1.5.3
 
 flutter:
