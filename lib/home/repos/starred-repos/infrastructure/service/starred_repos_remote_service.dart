@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:reop_viewer/core/infrastructure/network_exception.dart';
 import 'package:reop_viewer/core/infrastructure/remote_response.dart';
+import 'package:reop_viewer/home/core/domain/entities/github_repo.dart';
+import 'package:reop_viewer/home/core/infrastructure/github_headers.dart';
 import 'package:reop_viewer/home/core/infrastructure/github_headers_cache.dart';
 import 'package:reop_viewer/home/core/infrastructure/model/github_repo_dto.dart';
 import 'package:reop_viewer/core/infrastructure/dio_extensions.dart';
+import 'package:reop_viewer/home/core/infrastructure/pagination_config.dart';
 
 class StarredReposRemoteService {
   final Dio _dio;
@@ -14,30 +17,46 @@ class StarredReposRemoteService {
   Future<RemoteResponse<List<GithubRepoDTO>>> getStarredReposPage(
     int page,
   ) async {
-    final token = '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';
-    final accept = 'application/vnd.github.v3.html+json';
     final requestUri = Uri.http(
       'api.github.com',
       '/user/starred',
-      {'page': '$page'},
+      {
+        'page': '$page',
+        'per_page': PaginationConfig.itemsPerPage.toString(),
+      },
     );
 
     final previouseHeaders = await _headersCache.getHeaders(requestUri);
 
     try {
-      final response = _dio.getUri(
+      final response = await _dio.getUri(
         requestUri,
         options: Options(
-          headers: {
-            'Authorization': 'bearer $token',
-            'Accept': accept,
-            'If-None-Match': previouseHeaders?.etag ?? ''
-          },
+          headers: {'If-None-Match': previouseHeaders?.etag ?? ''},
         ),
       );
+      if (response.statusCode == 304) {
+        return RemoteResponse.notModified(
+            maxPage: previouseHeaders?.link?.maxPage ?? 0);
+      } else if (response.statusCode == 200) {
+        final headers = GithubHeaders.parse(response);
+        await _headersCache.saveHeaders(requestUri, headers);
+        final convertedData = (response.data as List<dynamic>)
+            .map(
+              (e) => GithubRepoDTO.fromJson(e as Map<String, dynamic>),
+            )
+            .toList();
+        return RemoteResponse.withNewDate(
+          convertedData,
+          maxPage: headers.link?.maxPage ?? 1,
+        );
+      } else {
+        throw RestApiException(response.statusCode);
+      }
     } on DioError catch (e) {
       if (e.isNoConnectionError) {
-        return const RemoteResponse.noConnection();
+        return RemoteResponse.noConnection(
+            maxPage: previouseHeaders?.link?.maxPage ?? 0);
       } else if (e.response != null) {
         throw RestApiException(e.response?.statusCode);
       } else {

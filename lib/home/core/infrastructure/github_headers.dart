@@ -7,7 +7,7 @@ part 'github_headers.g.dart';
 @freezed
 class GithubHeaders with _$GithubHeaders {
   const GithubHeaders._();
-  const factory GithubHeaders({
+  const factory GithubHeaders({ 
     String? etag,
     PaginationLink? link,
   }) = _GithubHeaders;
