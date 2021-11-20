@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,12 +11,12 @@ class SignInPage extends ConsumerWidget {
   const SignInPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
+  Widget build(BuildContext context, ScopedReader ref) {
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 50),
+            padding: const EdgeInsets.symmetric(horizontal: 48),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -25,46 +26,43 @@ class SignInPage extends ConsumerWidget {
                     MdiIcons.github,
                     size: 150,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Text(
                     'Welcome to\nRepo Viewer',
                     style: Theme.of(context).textTheme.headline3,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 30),
-                  signInButton(watch, context),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () {
+                      // ref.read(authNotifierProvider.notifier).signIn()
+                      context.read(authNotifierProvider.notifier).signIn(
+                        (authorizationUrl) {
+                          final completer = Completer<Uri>();
+                          AutoRouter.of(context).push(
+                            AuthorizationRoute(
+                              authorizationUrl: authorizationUrl,
+                              onAuthorizationCodeRedirectAttempt:
+                                  (redirectedUrl) {
+                                completer.complete(redirectedUrl);
+                              },
+                            ),
+                          );
+                          return completer.future;
+                        },
+                      );
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.green),
+                    ),
+                    child: const Text('Sign In'),
+                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  ElevatedButton signInButton(ScopedReader watch, BuildContext context) {
-    final authNotifier = watch(authNotifierProvider.notifier);
-    return ElevatedButton(
-      onPressed: () {
-        authNotifier.signIn(
-          (authorizationUrl) {
-            final completer = Completer<Uri>();
-            AutoRouter.of(context).push(
-              AuthorizationRoute(
-                authorizationUrl: authorizationUrl,
-                onAuthorizationCodeRedirectAttempt: (redirectedUrl) {
-                  completer.complete(redirectedUrl);
-                },
-              ),
-            );
-            return completer.future;
-          },
-        );
-      },
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(Colors.green),
-      ),
-      child: const Text('Sign in'),
     );
   }
 }

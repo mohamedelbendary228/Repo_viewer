@@ -1,12 +1,23 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:oauth2/oauth2.dart';
-import 'package:reop_viewer/auth/domain/auth_failure.dart';
-import 'package:reop_viewer/auth/infrastructure/credentials_storage/credentials_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:reop_viewer/auth/domain/auth_failure.dart';
 import 'package:reop_viewer/core/shared/encoders.dart';
 import 'package:reop_viewer/core/infrastructure/dio_extensions.dart';
+import 'credentials_storage/credentials_storage.dart';
+
+class GithubOAuthHttpClient extends http.BaseClient {
+  final httpClient = http.Client();
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers['Accept'] = 'application/json';
+    return httpClient.send(request);
+  }
+}
 
 class GithubAuthenticator {
   final CredentialsStorage _credentialsStorage;
@@ -14,21 +25,15 @@ class GithubAuthenticator {
 
   GithubAuthenticator(this._credentialsStorage, this._dio);
 
-  static const clientId = 'b4cae9397c5caba66aa4';
-
-  static const clientSecret = '67b6e1483fa93103935bd7d26af0cabc5a7be3b8';
-
+  static const clientId = '422249753fb132543eff';
+  static const clientSecret = '0559c45a67831e2cc340660c5f0f9ee688708e38';
   static const scopes = ['read:user', 'repo'];
-
   static final authorizationEndpoint =
       Uri.parse('https://github.com/login/oauth/authorize');
-
   static final tokenEndpoint =
       Uri.parse('https://github.com/login/oauth/access_token');
-
   static final revocationEndpoint =
       Uri.parse('https://api.github.com/applications/$clientId/token');
-
   static final redirectUrl = Uri.parse('http://localhost:3000/callback');
 
   Future<Credentials?> getSignedInCredentials() async {
@@ -55,7 +60,7 @@ class GithubAuthenticator {
       authorizationEndpoint,
       tokenEndpoint,
       secret: clientSecret,
-      httpClient: GithubOAuhtHttpClient(),
+      httpClient: GithubOAuthHttpClient(),
     );
   }
 
@@ -88,11 +93,12 @@ class GithubAuthenticator {
 
       final usernameAndPassword =
           stringToBase64.encode('$clientId:$clientSecret');
+
       try {
-        _dio.deleteUri(
+        await _dio.deleteUri(
           revocationEndpoint,
           data: {
-            'access-token': accessToken,
+            'access_token': accessToken,
           },
           options: Options(
             headers: {
@@ -129,7 +135,7 @@ class GithubAuthenticator {
       final refreshedCredentials = await credentials.refresh(
         identifier: clientId,
         secret: clientSecret,
-        httpClient: GithubOAuhtHttpClient(),
+        httpClient: GithubOAuthHttpClient(),
       );
       await _credentialsStorage.save(refreshedCredentials);
       return right(refreshedCredentials);
@@ -140,14 +146,5 @@ class GithubAuthenticator {
     } on PlatformException {
       return left(const AuthFailure.storage());
     }
-  }
-}
-
-class GithubOAuhtHttpClient extends http.BaseClient {
-  final httpClient = http.Client();
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    request.headers['Accept'] = 'application/json';
-    return httpClient.send(request);
   }
 }

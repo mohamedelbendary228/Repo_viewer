@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:reop_viewer/auth/application/auth_notifier.dart';
 import 'package:reop_viewer/auth/infrastructure/github_authenticator.dart';
@@ -19,22 +21,21 @@ class OAuth2Interceptor extends Interceptor {
       ..headers.addAll(
         credentials == null
             ? {}
-            : {
-                'Authorization': 'bearer ${credentials.accessToken}',
-              },
+            : {'Authorization': 'bearer ${credentials.accessToken}'},
       );
     handler.next(modifiedOptions);
   }
 
   @override
   Future<void> onError(DioError err, ErrorInterceptorHandler handler) async {
-    final errorResopnse = err.response;
-
-    if (errorResopnse != null && errorResopnse.statusCode == 401) {
+    final errorResponse = err.response;
+    if (errorResponse != null && errorResponse.statusCode == 401) {
       final credentials = await _authenticator.getSignedInCredentials();
+
       credentials != null && credentials.canRefresh
           ? await _authenticator.refresh(credentials)
           : await _authenticator.clearCredentialsStorage();
+
       await _authNotifier.checkAndUpdateAuthStatus();
 
       final refreshedCredentials =
@@ -42,7 +43,7 @@ class OAuth2Interceptor extends Interceptor {
       if (refreshedCredentials != null) {
         handler.resolve(
           await _dio.fetch(
-            errorResopnse.requestOptions
+            errorResponse.requestOptions
               ..headers['Authorization'] = 'bearer $refreshedCredentials',
           ),
         );
